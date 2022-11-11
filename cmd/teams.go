@@ -7,11 +7,11 @@ import (
 )
 
 type Team struct {
-	Name      string       `json:"name"`
-	Gender    string       `json:"gender"`
-	Category  string       `json:"category"`
-	BibNumber int          `json:"bib_number"`
-	Members   []TeamMember `json:"members"`
+	Name        string       `yaml:"name"`
+	Gender      string       `yaml:"gender"`
+	AgeCategory string       `yaml:"ageCategory"`
+	BibNumber   int          `yaml:"bibNumber"`
+	Members     []TeamMember `yaml:"members"`
 }
 
 // TeamMember a member of a team

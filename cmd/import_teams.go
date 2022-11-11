@@ -15,53 +15,50 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// importTeamsCmd represents the importTeams command
-var importTeamsCmd = &cobra.Command{
-	Use:   "import-teams --race=<race> --source=<source_csv> --output=<output_yaml>",
-	Short: "Import Teams from a CSV file",
-	Args:  cobra.ExactArgs(0),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if debug {
-			logrus.SetLevel(logrus.DebugLevel)
-		}
-		if !force {
-			if err := checkOutputFile(output); err != nil {
-				return err
+func newImportTeamsCmd() *cobra.Command {
+	var raceName string
+	var sourceFilename string
+	var outputFilename string
+	cmd := &cobra.Command{
+		Use:   "import-teams --race=<race> --source=<source_csv> --output=<output_yaml>",
+		Short: "Import Teams from a CSV file",
+		Args:  cobra.ExactArgs(0),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if debug {
+				logrus.SetLevel(logrus.DebugLevel)
 			}
-		}
-		return ImportCSV(race, source, output)
-	},
-}
-
-var race, source string
-
-func init() {
-	rootCmd.AddCommand(importTeamsCmd)
-	importTeamsCmd.Flags().StringVar(&race, "race", "", "Race name")
-	importTeamsCmd.Flags().StringVar(&source, "source", "", "Source CSV file")
-	importTeamsCmd.Flags().StringVar(&output, "output", "", "Output YAML file")
-	importTeamsCmd.Flags().BoolVar(&debug, "debug", false, "Display debug logs")
-	importTeamsCmd.Flags().BoolVar(&force, "force", false, "Force-write in output file even if it exists (existing content will be lost)")
+			if !force {
+				return checkOutputFile(outputFilename)
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return ImportCSV(raceName, sourceFilename, outputFilename)
+		},
+	}
+	cmd.Flags().StringVar(&raceName, "race", "", "Race name")
+	cmd.Flags().StringVar(&sourceFilename, "source", "", "Source file (CSV)")
+	cmd.Flags().StringVar(&outputFilename, "output", "", "Output file (YAML)")
+	return cmd
 }
 
 // ImportFromFile imports the data from the given file
-func ImportCSV(race, source, output string) error {
-
+func ImportCSV(raceName, sourceFilename, outputFilename string) error {
 	var headers []string
-	sourceFile, err := os.Open(source)
+	source, err := os.Open(sourceFilename)
 	if err != nil {
 		return err
 	}
-	defer sourceFile.Close()
-	outputFile, err := os.Create(output)
+	defer source.Close()
+	output, err := os.Create(outputFilename)
 	if err != nil {
 		return err
 	}
-	defer outputFile.Close()
-	r := csv.NewReader(sourceFile)
+	defer output.Close()
+	r := csv.NewReader(source)
 	undefinedMember := TeamMember{}
-	teamMember1 := undefinedMember
-	teamMember2 := undefinedMember
+	member1 := undefinedMember
+	member2 := undefinedMember
 
 	for {
 		record, err := r.Read()
@@ -75,33 +72,33 @@ func ImportCSV(race, source, output string) error {
 			headers = record
 			continue
 		}
-		if record[0] != race {
+		if record[0] != raceName {
 			// skip
 			continue
 		}
-		if teamMember1 == undefinedMember {
-			teamMember1, err = newTeamMember(record)
+		if member1 == undefinedMember {
+			member1, err = newTeamMember(record)
 			if err != nil {
 				return errors.Wrapf(err, "unable to create team member #1 from %+v", record)
 			}
 		} else {
-			teamMember2, err = newTeamMember(record)
+			member2, err = newTeamMember(record)
 			if err != nil {
 				return errors.Wrapf(err, "unable to create team member #2 from %+v", record)
 			}
 
 			bibNumber, err := strconv.Atoi(record[1])
 			if err != nil {
-				return errors.Wrapf(err, "unable to convert bibnumber '%s' to a number", record[1])
+				return errors.Wrapf(err, "unable to convert bibNumber '%s' to a number", record[1])
 			}
 			team := Team{
-				Name:      record[2], // team name
-				Category:  GetTeamAgeCategory(teamMember1.Category, teamMember2.Category),
-				BibNumber: bibNumber,
-				Gender:    genderFrom(teamMember1, teamMember2),
+				Name:        record[2], // team name
+				AgeCategory: GetTeamAgeCategory(member1.Category, member2.Category),
+				BibNumber:   bibNumber,
+				Gender:      genderFrom(member1, member2),
 				Members: []TeamMember{
-					teamMember1,
-					teamMember2,
+					member1,
+					member2,
 				},
 			}
 			out, err := yaml.Marshal(team)
@@ -109,12 +106,12 @@ func ImportCSV(race, source, output string) error {
 				return errors.Wrapf(err, "unable to marshall team from %+v", team)
 			}
 			logrus.Debugf("%s", out)
-			if _, err := outputFile.WriteString("---\n" + string(out)); err != nil {
+			if _, err := output.WriteString("---\n" + string(out)); err != nil {
 				return errors.Wrapf(err, "unable to write team from %+v", team)
 			}
 			// reset
-			teamMember1 = undefinedMember
-			teamMember2 = undefinedMember
+			member1 = undefinedMember
+			member2 = undefinedMember
 		}
 	}
 	return nil

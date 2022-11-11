@@ -27,10 +27,10 @@ var _ = Describe("import teams", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(output.Name()).To(HaveTeams(
 			cmd.Team{
-				Name:      "Team 1",
-				Gender:    "M",
-				Category:  "Master",
-				BibNumber: 1,
+				Name:        "Team 1",
+				Gender:      "M",
+				AgeCategory: "Master",
+				BibNumber:   1,
 				Members: []cmd.TeamMember{
 					{
 						FirstName:   "Élise",
@@ -51,10 +51,10 @@ var _ = Describe("import teams", func() {
 				},
 			},
 			cmd.Team{
-				Name:      "Team 2",
-				Gender:    "F",
-				Category:  "Master",
-				BibNumber: 2,
+				Name:        "Team 2",
+				Gender:      "F",
+				AgeCategory: "Master",
+				BibNumber:   2,
 				Members: []cmd.TeamMember{
 					{
 						FirstName:   "Océane",
@@ -75,10 +75,10 @@ var _ = Describe("import teams", func() {
 				},
 			},
 			cmd.Team{
-				Name:      "Team 3",
-				Gender:    "F",
-				Category:  "Minime",
-				BibNumber: 3,
+				Name:        "Team 3",
+				Gender:      "F",
+				AgeCategory: "Minime",
+				BibNumber:   3,
 				Members: []cmd.TeamMember{
 					{
 						FirstName:   "Margaud",
