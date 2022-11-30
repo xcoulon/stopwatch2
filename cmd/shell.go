@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/c-bata/go-prompt"
@@ -10,9 +12,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newShellCmd() *cobra.Command {
+func NewShellCmd() *cobra.Command {
 	var outputFilename string
-	cmd := &cobra.Command{
+	shellCmd := &cobra.Command{
 		Use:   "shell",
 		Short: "interactive shell for races",
 		Args:  cobra.ExactArgs(0),
@@ -35,20 +37,29 @@ func newShellCmd() *cobra.Command {
 				return err
 			}
 			defer output.Close()
+			fmt.Fprintln(cmd.OutOrStdout(), "**********************************")
+			fmt.Fprintln(cmd.OutOrStdout(), "type 'start' when the race begins!")
+			fmt.Fprintln(cmd.OutOrStdout(), "**********************************")
 		loop:
 			for {
 				t := prompt.Input("⏱ ", completer)
-				switch t {
+				switch strings.TrimSpace(t) {
 				case "stop", "quit", "exit":
 					break loop
 				case "start":
 					now := time.Now().Local().Format(TimeFormat)
-					if _, err = fmt.Fprintf(output, "start: %s\nteams:\n", now); err != nil {
+					if _, err = fmt.Fprintf(output, "%s: start\n", now); err != nil {
 						return err
 					}
-				default: // "start" and any team number
+				case "":
+					continue
+				default: // teams
 					now := time.Now().Local().Format(TimeFormat)
-					if _, err = fmt.Fprintf(output, "- bibNumber: %s\n  scratch: %s\n", t, now); err != nil {
+					if _, err := strconv.Atoi(t); err != nil {
+						fmt.Fprintf(cmd.ErrOrStderr(), "'%s' is not a valid bib number\n", t)
+						continue
+					}
+					if _, err = fmt.Fprintf(output, "%s: %s\n", now, t); err != nil {
 						return err
 					}
 				}
@@ -56,9 +67,9 @@ func newShellCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&outputFilename, "output", "", "path to write the arrivals (YAML)")
-	cmd.MarkFlagRequired("output")
-	return cmd
+	shellCmd.Flags().StringVar(&outputFilename, "output", "", "path to write the arrivals (YAML)")
+	shellCmd.MarkFlagRequired("output")
+	return shellCmd
 }
 
 func completer(d prompt.Document) []prompt.Suggest {

@@ -10,7 +10,7 @@ import (
 func checkOutputFile(filename string) error {
 	_, err := os.Stat(filename)
 	switch {
-	case errors.Is(err, os.ErrNotExist):
+	case errors.Is(err, os.ErrNotExist) || force:
 		// it's what we want
 		return nil
 	case err != nil:

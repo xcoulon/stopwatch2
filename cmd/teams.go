@@ -42,3 +42,7 @@ func (d *ISO8601Date) UnmarshalYAML(value *yaml.Node) error {
 func (d ISO8601Date) MarshalYAML() (interface{}, error) {
 	return time.Time(d).Format("2006-01-02"), nil
 }
+
+func (d ISO8601Date) Equal(other ISO8601Date) bool {
+	return time.Time(d).Equal(time.Time(other))
+}

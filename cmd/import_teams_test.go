@@ -8,45 +8,62 @@ import (
 	"time"
 
 	"github.com/vatriathlon/stopwatch2/cmd"
-	"gopkg.in/yaml.v3"
+	. "github.com/vatriathlon/stopwatch2/testsupport"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
+	"gopkg.in/yaml.v3"
 )
 
+const csv = `COMPÉTITION,Numéro de dossard,Nom de l'équipe,Nom,Prénom,Date de naissance,Sexe,Êtes vous licencié(e) ?,Numéro de licence,Club,Pass competition,Statut du dossier,Pièce jointe,Paiement
+Bike & Run XS,1,Team 1,Lastname1.1,Firstname1.1,01/01/1977,h,not_member,A1,,1,Complet,accepté,Payé
+Bike & Run XS,1,Team 1,Lastname1.2,Firstname1.2,02/01/1977,h,not_member,,,1,Complet,accepté,Payé
+Bike & Run XS,2,Team 2,Lastname2.1,Firstname2.1,01/01/1977,f,not_member,A2,LILLE TRIATHLON,1,Complet,accepté,Payé
+Bike & Run XS,2,Team 2,Lastname2.2,Firstname2.2,02/01/1977,f,not_member,,,1,Complet,accepté,Payé
+Bike & Run XS,3,Team 3,Lastname3.1,Firstname3.1,01/01/1977,f,not_member,A3,VILLENEUVE D'ASCQ TRIATHLON,1,Complet,accepté,Payé
+Bike & Run XS,3,Team 3,Lastname3.2,Firstname3.2,02/01/1977,h,not_member,,,1,Complet,accepté,Payé
+Bike & Run Jeunes 12-15,101,Team 101,Lastname101.1,Firstname101.1,01/01/2007,h,fftri,A9,VILLENEUVE D'ASCQ TRIATHLON,,Complet,accepté,Payé
+Bike & Run Jeunes 12-15,101,Team 101,Lastname101.2,Firstname101.2,02/01/2007,h,fftri,A9,VILLENEUVE D'ASCQ TRIATHLON,,Complet,accepté,Payé
+Bike & Run Jeunes 6-11,201,Team 201,Lastname201.1,Firstname201.1,01/01/2014,h,fftri,A9,LILLE TRIATHLON,,Complet,accepté,Payé
+Bike & Run Jeunes 6-11,201,Team 201,Lastname201.2,Firstname201.2,02/01/2014,h,fftri,A9,LILLE TRIATHLON,,Complet,accepté,Payé`
+
 var _ = Describe("import teams", func() {
+
 	It("should import teams of a selected race", func() {
 		// given
-		source := "../tmp/teams.csv"
+		source, err := os.CreateTemp(os.TempDir(), "teams*.csv")
+		Expect(err).NotTo(HaveOccurred())
+		source.WriteString(csv)
+		source.Close()
 		output, err := os.CreateTemp(os.TempDir(), "teams-*.yaml")
 		Expect(err).NotTo(HaveOccurred())
 		// when
-		err = cmd.ImportCSV("Bike & Run XS", source, output.Name())
+		err = cmd.ImportCSV(source.Name(), output.Name())
 		// then
 		Expect(err).NotTo(HaveOccurred())
 		Expect(output.Name()).To(HaveTeams(
 			cmd.Team{
 				Name:        "Team 1",
-				Gender:      "M",
+				Gender:      "H",
 				AgeCategory: "Master",
 				BibNumber:   1,
 				Members: []cmd.TeamMember{
 					{
-						FirstName:   "Élise",
-						LastName:    "Bonnin",
-						DateOfBirth: parseDate("1977-04-26"),
+						FirstName:   "Firstname1.1",
+						LastName:    "Lastname1.1",
+						DateOfBirth: parseDate("1977-01-01"),
 						Category:    "Master",
-						Gender:      "F",
+						Gender:      "H",
 						Club:        "",
 					},
 					{
-						FirstName:   "Bernard",
-						LastName:    "Georges",
-						DateOfBirth: parseDate("1975-01-26"),
+						FirstName:   "Firstname1.2",
+						LastName:    "Lastname1.2",
+						DateOfBirth: parseDate("1977-01-02"),
 						Category:    "Master",
 						Gender:      "H",
-						Club:        "TOBESPORT",
+						Club:        "",
 					},
 				},
 			},
@@ -57,17 +74,17 @@ var _ = Describe("import teams", func() {
 				BibNumber:   2,
 				Members: []cmd.TeamMember{
 					{
-						FirstName:   "Océane",
-						LastName:    "Aubert",
-						DateOfBirth: parseDate("1956-07-21"),
+						FirstName:   "Firstname2.1",
+						LastName:    "Lastname2.1",
+						DateOfBirth: parseDate("1977-01-01"),
 						Category:    "Master",
 						Gender:      "F",
-						Club:        "",
+						Club:        "LILLE TRIATHLON",
 					},
 					{
-						FirstName:   "Paulette",
-						LastName:    "Le Gall",
-						DateOfBirth: parseDate("1963-06-02"),
+						FirstName:   "Firstname2.2",
+						LastName:    "Lastname2.2",
+						DateOfBirth: parseDate("1977-01-02"),
 						Category:    "Master",
 						Gender:      "F",
 						Club:        "",
@@ -76,25 +93,73 @@ var _ = Describe("import teams", func() {
 			},
 			cmd.Team{
 				Name:        "Team 3",
-				Gender:      "F",
-				AgeCategory: "Minime",
+				Gender:      "M",
+				AgeCategory: "Master",
 				BibNumber:   3,
 				Members: []cmd.TeamMember{
 					{
-						FirstName:   "Margaud",
-						LastName:    "Lamy",
-						DateOfBirth: parseDate("2004-08-02"),
-						Category:    "Minime",
+						FirstName:   "Firstname3.1",
+						LastName:    "Lastname3.1",
+						DateOfBirth: parseDate("1977-01-01"),
+						Category:    "Master",
 						Gender:      "F",
-						Club:        "VILLENEUVE D ASCQ TRIATHLON",
+						Club:        "VILLENEUVE D'ASCQ TRIATHLON",
 					},
 					{
-						FirstName:   "Lorraine",
-						LastName:    "Poulain",
-						DateOfBirth: parseDate("2004-08-30"),
+						FirstName:   "Firstname3.2",
+						LastName:    "Lastname3.2",
+						DateOfBirth: parseDate("1977-01-02"),
+						Category:    "Master",
+						Gender:      "H",
+						Club:        "",
+					},
+				},
+			},
+			cmd.Team{
+				Name:        "Team 101",
+				Gender:      "H",
+				AgeCategory: "Minime",
+				BibNumber:   101,
+				Members: []cmd.TeamMember{
+					{
+						FirstName:   "Firstname101.1",
+						LastName:    "Lastname101.1",
+						DateOfBirth: parseDate("2007-01-01"),
 						Category:    "Minime",
-						Gender:      "F",
-						Club:        "VILLENEUVE D ASCQ TRIATHLON",
+						Gender:      "H",
+						Club:        "VILLENEUVE D'ASCQ TRIATHLON",
+					},
+					{
+						FirstName:   "Firstname101.2",
+						LastName:    "Lastname101.2",
+						DateOfBirth: parseDate("2007-01-02"),
+						Category:    "Minime",
+						Gender:      "H",
+						Club:        "VILLENEUVE D'ASCQ TRIATHLON",
+					},
+				},
+			},
+			cmd.Team{
+				Name:        "Team 201",
+				Gender:      "H",
+				AgeCategory: "Poussin",
+				BibNumber:   201,
+				Members: []cmd.TeamMember{
+					{
+						FirstName:   "Firstname201.1",
+						LastName:    "Lastname201.1",
+						DateOfBirth: parseDate("2014-01-01"),
+						Category:    "Poussin",
+						Gender:      "H",
+						Club:        "LILLE TRIATHLON",
+					},
+					{
+						FirstName:   "Firstname201.2",
+						LastName:    "Lastname201.2",
+						DateOfBirth: parseDate("2014-01-02"),
+						Category:    "Poussin",
+						Gender:      "H",
+						Club:        "LILLE TRIATHLON",
 					},
 				},
 			},
@@ -128,7 +193,7 @@ func HaveTeams(expected ...cmd.Team) types.GomegaMatcher {
 				teams = append(teams, team)
 			}
 			return teams, nil
-		}, Equal(expected)),
+		}, MatchTeams(expected)),
 	)
 }
 
@@ -144,13 +209,13 @@ var _ = DescribeTable("age categories",
 		// then
 		Expect(result).To(Equal(expected))
 	},
-	Entry("mini poussin", "2012-02-03", cmd.MiniPoussin),
-	Entry("poussin", "2010-02-03", cmd.Poussin),
-	Entry("pupille", "2009-02-03", cmd.Pupille),
-	Entry("benjamin", "2007-02-03", cmd.Benjamin),
-	Entry("cadet", "2002-02-03", cmd.Cadet),
-	Entry("junior", "2000-02-03", cmd.Junior),
-	Entry("senior", "1981-02-03", cmd.Senior),
+	Entry("mini poussin", "2015-02-03", cmd.MiniPoussin),
+	Entry("poussin", "2013-02-03", cmd.Poussin),
+	Entry("pupille", "2012-02-03", cmd.Pupille),
+	Entry("benjamin", "2010-02-03", cmd.Benjamin),
+	Entry("cadet", "2005-02-03", cmd.Cadet),
+	Entry("junior", "2003-02-03", cmd.Junior),
+	Entry("senior", "1984-02-03", cmd.Senior),
 	Entry("junior", "1975-02-03", cmd.Master),
 )
 
@@ -165,7 +230,6 @@ var _ = DescribeTable("team age categories",
 	Entry("poussin/poussin", cmd.Poussin, cmd.Poussin, cmd.Poussin),
 	Entry("poussin/pupille", cmd.Poussin, cmd.Pupille, cmd.Pupille),
 	Entry("benjamin/minime", cmd.Benjamin, cmd.Minime, cmd.Minime),
-	Entry("senior/senior", cmd.Senior, cmd.Senior, cmd.Senior),
 	Entry("senior/senior", cmd.Senior, cmd.Senior, cmd.Senior),
 	Entry("master/senior", cmd.Master, cmd.Senior, cmd.Senior),
 	Entry("master/master", cmd.Master, cmd.Master, cmd.Master),
