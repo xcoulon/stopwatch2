@@ -48,7 +48,7 @@ func NewShellCmd() *cobra.Command {
 					break loop
 				case "start":
 					now := time.Now().Local().Format(TimeFormat)
-					if _, err = fmt.Fprintf(output, "%s: start\n", now); err != nil {
+					if _, err = fmt.Fprintf(output, "- %s: start\n", now); err != nil {
 						return err
 					}
 				case "":
@@ -59,7 +59,7 @@ func NewShellCmd() *cobra.Command {
 						fmt.Fprintf(cmd.ErrOrStderr(), "'%s' is not a valid bib number\n", t)
 						continue
 					}
-					if _, err = fmt.Fprintf(output, "%s: %s\n", now, t); err != nil {
+					if _, err = fmt.Fprintf(output, "- %s: %s\n", now, t); err != nil {
 						return err
 					}
 				}
