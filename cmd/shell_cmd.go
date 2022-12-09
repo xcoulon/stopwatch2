@@ -15,7 +15,7 @@ import (
 func NewShellCmd() *cobra.Command {
 	var outputFilename string
 	shellCmd := &cobra.Command{
-		Use:   "shell <timings.yaml",
+		Use:   "shell <timings.yaml>",
 		Short: "interactive shell for races",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
