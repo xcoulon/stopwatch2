@@ -21,14 +21,10 @@ import (
 )
 
 func NewGenerateReportCmd() *cobra.Command {
-	var race string
-	var teams string
-	var timings string
-	var outputDir string
 	generateCmd := &cobra.Command{
-		Use:   "generate-report --race-name=<race_name> --teams=<teams.yaml> --race-results=<results.yaml> --output-dir=<directory>",
+		Use:   "generate-report <race_name> <teams.yaml> <timings.yaml> <output-dir>",
 		Short: "Generate a race report",
-		Args:  cobra.ExactArgs(0),
+		Args:  cobra.ExactArgs(4),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if debug {
 				logrus.SetLevel(logrus.DebugLevel)
@@ -36,14 +32,10 @@ func NewGenerateReportCmd() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, _, err := GenerateReport(race, teams, timings, outputDir)
+			_, _, err := GenerateReport(args[0], args[1], args[2], args[3])
 			return err
 		},
 	}
-	generateCmd.Flags().StringVar(&race, "race-name", "", "Race name")
-	generateCmd.Flags().StringVar(&teams, "teams", "", "File describing the teams (YAML)")
-	generateCmd.Flags().StringVar(&timings, "timings", "", "File containing the timings (YAML)")
-	generateCmd.Flags().StringVar(&outputDir, "output-dir", "", "Output dir (AsciiDoc)")
 	return generateCmd
 }
 

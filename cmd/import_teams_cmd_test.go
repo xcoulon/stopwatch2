@@ -16,17 +16,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const csv = `COMPÉTITION,Numéro de dossard,Nom de l'équipe,Nom,Prénom,Date de naissance,Sexe,Êtes vous licencié(e) ?,Numéro de licence,Club,Pass competition,Statut du dossier,Pièce jointe,Paiement
-Bike & Run XS,1,Team 1,Lastname1.1,Firstname1.1,01/01/1977,h,not_member,A1,,1,Complet,accepté,Payé
-Bike & Run XS,1,Team 1,Lastname1.2,Firstname1.2,02/01/1977,h,not_member,,,1,Complet,accepté,Payé
-Bike & Run XS,2,Team 2,Lastname2.1,Firstname2.1,01/01/1977,f,not_member,A2,LILLE TRIATHLON,1,Complet,accepté,Payé
-Bike & Run XS,2,Team 2,Lastname2.2,Firstname2.2,02/01/1977,f,not_member,,,1,Complet,accepté,Payé
-Bike & Run XS,3,Team 3,Lastname3.1,Firstname3.1,01/01/1977,f,not_member,A3,VILLENEUVE D'ASCQ TRIATHLON,1,Complet,accepté,Payé
-Bike & Run XS,3,Team 3,Lastname3.2,Firstname3.2,02/01/1977,h,not_member,,,1,Complet,accepté,Payé
-Bike & Run Jeunes 12-15,101,Team 101,Lastname101.1,Firstname101.1,01/01/2007,h,fftri,A9,VILLENEUVE D'ASCQ TRIATHLON,,Complet,accepté,Payé
-Bike & Run Jeunes 12-15,101,Team 101,Lastname101.2,Firstname101.2,02/01/2007,h,fftri,A9,VILLENEUVE D'ASCQ TRIATHLON,,Complet,accepté,Payé
-Bike & Run Jeunes 6-11,201,Team 201,Lastname201.1,Firstname201.1,01/01/2014,h,fftri,A9,LILLE TRIATHLON,,Complet,accepté,Payé
-Bike & Run Jeunes 6-11,201,Team 201,Lastname201.2,Firstname201.2,02/01/2014,h,fftri,A9,LILLE TRIATHLON,,Complet,accepté,Payé`
+const csv = `Numéro de dossard,COMPÉTITION,Nom de l'équipe,Identifiant d'inscription,Nom,Prénom,Date de naissance,Sexe,Êtes vous licencié(e) ?,Numéro de licence,Numéro de licence,Pass C,Statut du dossier,Paiement
+1,Bike & Run XS,Team 1,unused,Lastname1.1,Firstname1.1,01/01/1977,h,not_member,A1,,1,Complet,Payé
+1,Bike & Run XS,Team 1,unused,Lastname1.2,Firstname1.2,02/01/1977,h,not_member,,,1,Complet,Payé
+2,Bike & Run XS,Team 2,unused,Lastname2.1,Firstname2.1,01/01/1977,f,not_member,A2,LILLE TRIATHLON,1,Complet,Payé
+2,Bike & Run XS,Team 2,unused,Lastname2.2,Firstname2.2,02/01/1977,f,not_member,,,1,Complet,Payé
+3,Bike & Run XS,Team 3,unused,Lastname3.1,Firstname3.1,01/01/1977,f,not_member,A3,VILLENEUVE D'ASCQ TRIATHLON,1,Complet,Payé
+3,Bike & Run XS,Team 3,unused,Lastname3.2,Firstname3.2,02/01/1977,h,not_member,,,1,Complet,Payé
+101,Bike & Run Jeunes 12-15,Team 101,unused,Lastname101.1,Firstname101.1,01/01/2007,h,fftri,A9,VILLENEUVE D'ASCQ TRIATHLON,,Complet,Payé
+101,Bike & Run Jeunes 12-15,Team 101,unused,Lastname101.2,Firstname101.2,02/01/2007,h,fftri,A9,VILLENEUVE D'ASCQ TRIATHLON,,Complet,Payé
+201,Bike & Run Jeunes 6-11,Team 201,unused,Lastname201.1,Firstname201.1,01/01/2014,h,fftri,A9,LILLE TRIATHLON,,Complet,Payé
+201,Bike & Run Jeunes 6-11,Team 201,unused,Lastname201.2,Firstname201.2,02/01/2014,h,fftri,A9,LILLE TRIATHLON,,Complet,Payé`
 
 var _ = Describe("import teams", func() {
 
@@ -197,40 +197,3 @@ func HaveTeams(expected ...cmd.Team) types.GomegaMatcher {
 	)
 }
 
-var _ = DescribeTable("age categories",
-
-	func(dateOfBirth string, expected string) {
-		// given
-		pattern := "2006-01-02"
-		d, err := time.Parse(pattern, dateOfBirth)
-		Expect(err).NotTo(HaveOccurred())
-		// when
-		result := cmd.GetAgeCategory(d)
-		// then
-		Expect(result).To(Equal(expected))
-	},
-	Entry("mini poussin", "2015-02-03", cmd.MiniPoussin),
-	Entry("poussin", "2013-02-03", cmd.Poussin),
-	Entry("pupille", "2012-02-03", cmd.Pupille),
-	Entry("benjamin", "2010-02-03", cmd.Benjamin),
-	Entry("cadet", "2005-02-03", cmd.Cadet),
-	Entry("junior", "2003-02-03", cmd.Junior),
-	Entry("senior", "1984-02-03", cmd.Senior),
-	Entry("junior", "1975-02-03", cmd.Master),
-)
-
-var _ = DescribeTable("team age categories",
-	func(category1, category2 string, expected string) {
-		result := cmd.GetTeamAgeCategory(category1, category2)
-		// then
-		Expect(result).To(Equal(expected))
-	},
-	Entry("mini poussin/mini poussin", cmd.MiniPoussin, cmd.MiniPoussin, cmd.MiniPoussin),
-	Entry("mini poussin/poussin", cmd.MiniPoussin, cmd.Poussin, cmd.Poussin),
-	Entry("poussin/poussin", cmd.Poussin, cmd.Poussin, cmd.Poussin),
-	Entry("poussin/pupille", cmd.Poussin, cmd.Pupille, cmd.Pupille),
-	Entry("benjamin/minime", cmd.Benjamin, cmd.Minime, cmd.Minime),
-	Entry("senior/senior", cmd.Senior, cmd.Senior, cmd.Senior),
-	Entry("master/senior", cmd.Master, cmd.Senior, cmd.Senior),
-	Entry("master/master", cmd.Master, cmd.Master, cmd.Master),
-)
