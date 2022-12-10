@@ -64,6 +64,33 @@ var _ = Describe("generate reports", func() {
 			},
 			{
 				Team: cmd.Team{
+					Name:        "Team 4",
+					Gender:      "H",
+					AgeCategory: "Master",
+					BibNumber:   4,
+					Members: []cmd.TeamMember{
+						{
+							FirstName:   "Firstname4.1",
+							LastName:    "Lastname4.1",
+							DateOfBirth: parseDate("1977-01-01"),
+							Category:    "Master",
+							Gender:      "H",
+							Club:        "",
+						},
+						{
+							FirstName:   "Firstname4.2",
+							LastName:    "Lastname4.2",
+							DateOfBirth: parseDate("1977-01-02"),
+							Category:    "Master",
+							Gender:      "H",
+							Club:        "",
+						},
+					},
+				},
+				TotalTime: 51 * time.Minute,
+			},
+			{
+				Team: cmd.Team{
 					Name:        "Team 2",
 					Gender:      "F",
 					AgeCategory: "Master",
@@ -138,8 +165,9 @@ var _ = Describe("generate reports", func() {
 |# |Dossard |Equipe |Catégorie |Coureurs |Club |Temps Total
 
 |1 |3 |Team 3 |Master/M |Lastname3.1 - Lastname3.2 |VILLENEUVE D'ASCQ TRIATHLON |50m0s 
-|2 |2 |Team 2 |Master/F |Lastname2.1 - Lastname2.2 |LILLE TRIATHLON |51m30s 
-|3 |1 |Team 1 |Master/H |Lastname1.1 - Lastname1.2 | |52m55s 
+|2 |4 |Team 4 |Master/H |Lastname4.1 - Lastname4.2 | |51m0s 
+|3 |2 |Team 2 |Master/F |Lastname2.1 - Lastname2.2 |LILLE TRIATHLON |51m30s 
+|4 |1 |Team 1 |Master/H |Lastname1.1 - Lastname1.2 | |52m55s 
 |===
 `))
 
@@ -164,7 +192,7 @@ var _ = Describe("generate reports", func() {
 |===
 |# |Dossard |Equipe |Coureurs |Club |Temps Total
 
-|1 |1 |Team 1 |Lastname1.1 - Lastname1.2 | |52m55s 
+|1 |4 |Team 4 |Lastname4.1 - Lastname4.2 | |51m0s 
 |===
 
 == Master/M

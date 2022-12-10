@@ -53,6 +53,24 @@ members:
       category: Master
       gender: H
 ---
+name: Team 4
+gender: H
+ageCategory: Master
+bibNumber: 4
+members:
+    - firstName: Firstname4.1
+      lastName: Lastname4.1
+      dateOfBirth: "1977-01-01"
+      category: Master
+      gender: H
+      club: ""
+    - firstName: Firstname4.2
+      lastName: Lastname4.2
+      dateOfBirth: "1977-01-02"
+      category: Master
+      gender: H
+      club: ""
+---
 name: Team 101
 gender: H
 ageCategory: Minime

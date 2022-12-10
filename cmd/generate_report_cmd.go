@@ -201,6 +201,7 @@ func generateResultsPerCategory(raceName string, results []TeamResult, outputFil
 	adocWriter.WriteString(fmt.Sprintf("= %s - Classement Par Catégorie\n\n", raceName))
 
 	for _, c := range []string{MiniPoussin, Poussin, Pupille, Benjamin, Minime, Cadet, Junior, Senior, Master} {
+	gender_loop:
 		for _, g := range []string{"F", "H", "M"} {
 			// retain 1st match
 			for _, r := range results {
@@ -220,8 +221,8 @@ func generateResultsPerCategory(raceName string, results []TeamResult, outputFil
 						getMemberClubs(r.Members),
 						r.TotalTime.Round(time.Second).String()))
 					adocWriter.WriteString("|===\n\n")
+					continue gender_loop
 				}
-				continue
 			}
 		}
 	}
