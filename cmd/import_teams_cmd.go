@@ -16,7 +16,7 @@ import (
 
 func NewImportTeamsCmd() *cobra.Command {
 	importCmd := &cobra.Command{
-		Use:   "import-teams <source_csv> <output_yaml>",
+		Use:   "import-teams <teams.csv> <teams.yaml>",
 		Short: "Import Teams from a CSV file",
 		Args:  cobra.ExactArgs(2),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -124,6 +124,6 @@ func newTeamMember(record []string) (TeamMember, error) {
 		DateOfBirth: ISO8601Date(dateOfBirth),
 		Gender:      strings.ToUpper(record[6]),
 		Category:    GetAgeCategory(dateOfBirth),
-		Club:        record[9],
+		Club:        record[7],
 	}, nil
 }
