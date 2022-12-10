@@ -13,7 +13,6 @@ import (
 )
 
 func NewShellCmd() *cobra.Command {
-	var outputFilename string
 	shellCmd := &cobra.Command{
 		Use:   "shell <timings.yaml>",
 		Short: "interactive shell for races",
@@ -23,7 +22,7 @@ func NewShellCmd() *cobra.Command {
 				logrus.SetLevel(logrus.DebugLevel)
 			}
 			if !force {
-				return checkOutputFile(outputFilename)
+				return checkOutputFile(args[0])
 			}
 			return nil
 		},
@@ -32,7 +31,7 @@ func NewShellCmd() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// TODO: use MultiWriter to write in a backup file
-			output, err := os.OpenFile(outputFilename, os.O_WRONLY|os.O_CREATE, 0600)
+			output, err := os.OpenFile(args[0], os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 			if err != nil {
 				return err
 			}
@@ -43,6 +42,7 @@ func NewShellCmd() *cobra.Command {
 		loop:
 			for {
 				t := prompt.Input("⏱ ", completer)
+
 				switch strings.TrimSpace(t) {
 				case "stop", "quit", "exit":
 					break loop
