@@ -114,16 +114,16 @@ func genderFrom(teamMember1, teamMember2 TeamMember) string {
 }
 
 func newTeamMember(record []string) (TeamMember, error) {
-	dateOfBirth, err := time.Parse("02/01/2006", record[6])
+	dateOfBirth, err := time.Parse("02/01/2006", record[5])
 	if err != nil {
 		return TeamMember{}, errors.Wrapf(err, "unable to parse date '%s'", record[5])
 	}
 	return TeamMember{
-		LastName:    record[4],
-		FirstName:   record[5],
+		LastName:    record[3],
+		FirstName:   record[4],
 		DateOfBirth: ISO8601Date(dateOfBirth),
-		Gender:      strings.ToUpper(record[7]),
+		Gender:      strings.ToUpper(record[6]),
 		Category:    GetAgeCategory(dateOfBirth),
-		Club:        record[10],
+		Club:        record[9],
 	}, nil
 }
