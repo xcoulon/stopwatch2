@@ -40,7 +40,7 @@ func NewGenerateReportCmd() *cobra.Command {
 }
 
 func GenerateReport(raceName, teamFilename, timingFilename, outputDir string) (string, string, error) {
-	results, err := NewTeamResults(teamFilename, timingFilename)
+	results, err := NewOverallResults(teamFilename, timingFilename)
 	if err != nil {
 		return "", "", err
 	}
@@ -49,7 +49,7 @@ func GenerateReport(raceName, teamFilename, timingFilename, outputDir string) (s
 	if err := checkOutputFile(overallFilename); err != nil {
 		return "", "", err
 	}
-	if err := generateOverallResults(raceName, results, overallFilename); err != nil {
+	if err := GenerateOverallResultsReport(raceName, results, overallFilename); err != nil {
 		return "", "", err
 	}
 	perCategoryFilename := filepath.Join(outputDir, base+"-per-category.adoc")
@@ -57,7 +57,7 @@ func GenerateReport(raceName, teamFilename, timingFilename, outputDir string) (s
 		return "", "", err
 	}
 
-	if err := generateResultsPerCategory(raceName, results, perCategoryFilename); err != nil {
+	if err := GenerateResultsPerCategoryReport(raceName, results, perCategoryFilename); err != nil {
 		return "", "", err
 	}
 	return overallFilename, perCategoryFilename, nil
@@ -83,7 +83,7 @@ func loadTeams(filename string) (map[int]Team, error) {
 	return teams, nil
 }
 
-func NewTeamResults(teamFilename, timingFilename string) ([]TeamResult, error) {
+func NewOverallResults(teamFilename, timingFilename string) ([]TeamResult, error) {
 	teams, err := loadTeams(teamFilename)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func NewTeamResults(teamFilename, timingFilename string) ([]TeamResult, error) {
 		return nil, fmt.Errorf("invalid start time: %v", err)
 	}
 	results := []TeamResult{}
-	for _, t := range timings[1:] {
+	for i, t := range timings[1:] {
 		bib, err := t.BibNumber()
 		if err != nil {
 			return nil, fmt.Errorf("invalid bib number: %v", err)
@@ -121,6 +121,7 @@ func NewTeamResults(teamFilename, timingFilename string) ([]TeamResult, error) {
 			return nil, fmt.Errorf("no team with number %d", bib)
 		}
 		results = append(results, TeamResult{
+			Rank:      i + 1,
 			Team:      team,
 			TotalTime: arrivalTime.Sub(startTime),
 		})
@@ -144,7 +145,7 @@ func getMemberClubs(members []TeamMember) string {
 	return strings.TrimSpace(fmt.Sprintf("%s %s", members[0].Club, members[1].Club))
 }
 
-func generateOverallResults(raceName string, results []TeamResult, outputFilename string) error {
+func GenerateOverallResultsReport(raceName string, results []TeamResult, outputFilename string) error {
 	outputFile, err := os.Create(outputFilename)
 	if err != nil {
 		return err
@@ -184,21 +185,11 @@ func generateOverallResults(raceName string, results []TeamResult, outputFilenam
 	return nil
 }
 
-func generateResultsPerCategory(raceName string, results []TeamResult, outputFilename string) error {
-	outputFile, err := os.Create(outputFilename)
-	if err != nil {
-		return err
-	}
-	defer outputFile.Close()
-
+func NewWinnerPerCategory(results []TeamResult) (map[string]TeamResult, error) {
 	if len(results) == 0 {
-		return fmt.Errorf("empty results?")
+		return nil, fmt.Errorf("empty results?")
 	}
-
-	logrus.WithField("race_name", raceName).WithField("filename", outputFilename).Info("generating results per category...")
-
-	adocWriter := bufio.NewWriter(outputFile)
-	adocWriter.WriteString(fmt.Sprintf("= %s - Classement Par Catégorie\n\n", raceName))
+	winners := map[string]TeamResult{}
 
 	for _, c := range []string{MiniPoussin, Poussin, Pupille, Benjamin, Minime, Cadet, Junior, Senior, Master} {
 	gender_loop:
@@ -206,23 +197,50 @@ func generateResultsPerCategory(raceName string, results []TeamResult, outputFil
 			// retain 1st match
 			for _, r := range results {
 				if r.AgeCategory == c && r.Gender == g {
-					// section title
-					adocWriter.WriteString(fmt.Sprintf("== %s\n\n", getCategory(r.AgeCategory, r.Gender)))
-
-					// table header
-					adocWriter.WriteString("[cols=\"2,5,5,10,10,5\"]\n")
-					adocWriter.WriteString("|===\n")
-					adocWriter.WriteString("|# |Dossard |Equipe |Coureurs |Club |Temps Total\n\n")
-					adocWriter.WriteString(fmt.Sprintf("|%d |%d |%s |%s |%s |%s \n",
-						1,
-						r.BibNumber,
-						r.Name,
-						getMemberNames(r.Members),
-						getMemberClubs(r.Members),
-						r.TotalTime.Round(time.Second).String()))
-					adocWriter.WriteString("|===\n\n")
+					winners[getCategory(r.AgeCategory, r.Gender)] = r
 					continue gender_loop
 				}
+			}
+		}
+	}
+	return winners, nil
+}
+
+func GenerateResultsPerCategoryReport(raceName string, results []TeamResult, outputFilename string) error {
+	logrus.WithField("race_name", raceName).WithField("filename", outputFilename).Info("generating results per category...")
+	winners, err := NewWinnerPerCategory(results)
+	if err != nil {
+		return err
+	}
+	outputFile, err := os.Create(outputFilename)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+
+	adocWriter := bufio.NewWriter(outputFile)
+	adocWriter.WriteString(fmt.Sprintf("= %s - Classement Par Catégorie\n\n", raceName))
+
+	for _, c := range []string{MiniPoussin, Poussin, Pupille, Benjamin, Minime, Cadet, Junior, Senior, Master} {
+	gender_loop:
+		for _, g := range []string{"F", "H", "M"} {
+			if r, found := winners[getCategory(c, g)]; found {
+				// section title
+				adocWriter.WriteString(fmt.Sprintf("== %s\n\n", getCategory(r.AgeCategory, r.Gender)))
+
+				// table header
+				adocWriter.WriteString("[cols=\"2,5,5,10,10,5\"]\n")
+				adocWriter.WriteString("|===\n")
+				adocWriter.WriteString("|# |Dossard |Equipe |Coureurs |Club |Temps Total\n\n")
+				adocWriter.WriteString(fmt.Sprintf("|%d |%d |%s |%s |%s |%s \n",
+					r.Rank,
+					r.BibNumber,
+					r.Name,
+					getMemberNames(r.Members),
+					getMemberClubs(r.Members),
+					r.TotalTime.Round(time.Second).String()))
+				adocWriter.WriteString("|===\n\n")
+				continue gender_loop
 			}
 		}
 	}

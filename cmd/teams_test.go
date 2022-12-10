@@ -71,6 +71,60 @@ members:
       gender: H
       club: ""
 ---
+name: Team 5
+gender: F
+ageCategory: Senior
+bibNumber: 5
+members:
+    - firstName: Firstname5.1
+      lastName: Lastname5.1
+      dateOfBirth: "1987-01-01"
+      category: Senior
+      gender: F
+      club: ""
+    - firstName: Firstname5.2
+      lastName: Lastname5.2
+      dateOfBirth: "1987-01-02"
+      category: Senior
+      gender: F
+      club: ""
+---
+name: Team 6
+gender: M
+ageCategory: Senior
+bibNumber: 6
+members:
+    - firstName: Firstname6.1
+      lastName: Lastname6.1
+      dateOfBirth: "1987-01-01"
+      category: Senior
+      gender: F
+      club: ""
+    - firstName: Firstname6.2
+      lastName: Lastname6.2
+      dateOfBirth: "1987-01-02"
+      category: Senior
+      gender: H
+      club: ""
+---
+name: Team 17
+gender: M
+ageCategory: Senior
+bibNumber: 17
+members:
+    - firstName: Firstname17.1
+      lastName: Lastname17.1
+      dateOfBirth: "1987-01-01"
+      category: Senior
+      gender: F
+      club: ""
+    - firstName: Firstname17.2
+      lastName: Lastname17.2
+      dateOfBirth: "1987-01-02"
+      category: Senior
+      gender: H
+      club: ""
+---
 name: Team 101
 gender: H
 ageCategory: Minime
