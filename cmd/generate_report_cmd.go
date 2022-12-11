@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -185,20 +186,22 @@ func GenerateOverallResultsReport(raceName string, results []TeamResult, outputF
 	return nil
 }
 
-func NewWinnerPerCategory(results []TeamResult) (map[string]TeamResult, error) {
+func NewWinnerPerCategory(results []TeamResult) (map[string][]TeamResult, error) {
 	if len(results) == 0 {
 		return nil, fmt.Errorf("empty results?")
 	}
-	winners := map[string]TeamResult{}
+	winners := map[string][]TeamResult{}
 
 	for _, c := range []string{MiniPoussin, Poussin, Pupille, Benjamin, Minime, Cadet, Junior, Senior, Master} {
-	gender_loop:
 		for _, g := range []string{"F", "H", "M"} {
 			// retain 1st match
 			for _, r := range results {
 				if r.AgeCategory == c && r.Gender == g {
-					winners[getCategory(r.AgeCategory, r.Gender)] = r
-					continue gender_loop
+					cat := getCategory(r.AgeCategory, r.Gender)
+					if winners[cat] == nil {
+						winners[cat] = []TeamResult{}
+					}
+					winners[cat] = append(winners[cat], r)
 				}
 			}
 		}
@@ -224,21 +227,25 @@ func GenerateResultsPerCategoryReport(raceName string, results []TeamResult, out
 	for _, c := range []string{MiniPoussin, Poussin, Pupille, Benjamin, Minime, Cadet, Junior, Senior, Master} {
 	gender_loop:
 		for _, g := range []string{"F", "H", "M"} {
-			if r, found := winners[getCategory(c, g)]; found {
+			if rs, found := winners[getCategory(c, g)]; found {
 				// section title
-				adocWriter.WriteString(fmt.Sprintf("== %s\n\n", getCategory(r.AgeCategory, r.Gender)))
+				adocWriter.WriteString(fmt.Sprintf("== %s\n\n", getCategory(rs[0].AgeCategory, rs[0].Gender)))
 
 				// table header
 				adocWriter.WriteString("[cols=\"2,5,5,10,10,5\"]\n")
 				adocWriter.WriteString("|===\n")
 				adocWriter.WriteString("|# |Dossard |Equipe |Coureurs |Club |Temps Total\n\n")
-				adocWriter.WriteString(fmt.Sprintf("|%d |%d |%s |%s |%s |%s \n",
-					r.Rank,
-					r.BibNumber,
-					r.Name,
-					getMemberNames(r.Members),
-					getMemberClubs(r.Members),
-					r.TotalTime.Round(time.Second).String()))
+				l := int(math.Min(3, float64(len(rs))))
+				for i := 0; i < l; i++ {
+					r := rs[i]
+					adocWriter.WriteString(fmt.Sprintf("|%d |%d |%s |%s |%s |%s \n",
+						r.Rank,
+						r.BibNumber,
+						r.Name,
+						getMemberNames(r.Members),
+						getMemberClubs(r.Members),
+						r.TotalTime.Round(time.Second).String()))
+				}
 				adocWriter.WriteString("|===\n\n")
 				continue gender_loop
 			}
