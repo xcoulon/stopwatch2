@@ -2,183 +2,102 @@ package cmd_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
+	"log/slog"
 	"os"
+	"path/filepath"
+	"testing"
 	"time"
 
+	"github.com/alecthomas/assert"
+	"github.com/charmbracelet/log"
+	"github.com/google/go-cmp/cmp"
+	"github.com/sanity-io/litter"
+	"github.com/stretchr/testify/require"
 	"github.com/vatriathlon/stopwatch2/cmd"
-	. "github.com/vatriathlon/stopwatch2/testsupport"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/types"
 	"gopkg.in/yaml.v3"
 )
 
-var _ = Describe("import teams", func() {
+func TestImportCSV(t *testing.T) {
 
-	It("should import teams of a selected race", func() {
-		// given
-		source, err := os.Open("teams.csv")
-		Expect(err).NotTo(HaveOccurred())
-		output, err := os.CreateTemp(os.TempDir(), "teams-*.yaml")
-		Expect(err).NotTo(HaveOccurred())
-		// when
-		err = cmd.ImportCSV(source.Name(), output.Name())
-		// then
-		Expect(err).NotTo(HaveOccurred())
-		Expect(output.Name()).To(HaveTeams(
-			cmd.Team{
-				Name:        "Team 1",
-				Gender:      "H",
-				AgeCategory: "Master",
-				BibNumber:   1,
-				Members: []cmd.TeamMember{
-					{
-						FirstName:   "Firstname1.1",
-						LastName:    "Lastname1.1",
-						DateOfBirth: parseDate("1977-01-01"),
-						Category:    "Master",
-						Gender:      "H",
-						Club:        "",
-					},
-					{
-						FirstName:   "Firstname1.2",
-						LastName:    "Lastname1.2",
-						DateOfBirth: parseDate("1977-01-02"),
-						Category:    "Master",
-						Gender:      "H",
-						Club:        "",
-					},
-				},
-			},
-			cmd.Team{
-				Name:        "Team 2",
-				Gender:      "F",
-				AgeCategory: "Master",
-				BibNumber:   2,
-				Members: []cmd.TeamMember{
-					{
-						FirstName:   "Firstname2.1",
-						LastName:    "Lastname2.1",
-						DateOfBirth: parseDate("1977-01-01"),
-						Category:    "Master",
-						Gender:      "F",
-						Club:        "LILLE TRIATHLON",
-					},
-					{
-						FirstName:   "Firstname2.2",
-						LastName:    "Lastname2.2",
-						DateOfBirth: parseDate("1977-01-02"),
-						Category:    "Master",
-						Gender:      "F",
-						Club:        "",
-					},
-				},
-			},
-			cmd.Team{
-				Name:        "Team 3",
-				Gender:      "M",
-				AgeCategory: "Master",
-				BibNumber:   3,
-				Members: []cmd.TeamMember{
-					{
-						FirstName:   "Firstname3.1",
-						LastName:    "Lastname3.1",
-						DateOfBirth: parseDate("1977-01-01"),
-						Category:    "Master",
-						Gender:      "F",
-						Club:        "VILLENEUVE D'ASCQ TRIATHLON",
-					},
-					{
-						FirstName:   "Firstname3.2",
-						LastName:    "Lastname3.2",
-						DateOfBirth: parseDate("1977-01-02"),
-						Category:    "Master",
-						Gender:      "H",
-						Club:        "",
-					},
-				},
-			},
-			cmd.Team{
-				Name:        "Team 101",
-				Gender:      "H",
-				AgeCategory: "Minime",
-				BibNumber:   101,
-				Members: []cmd.TeamMember{
-					{
-						FirstName:   "Firstname101.1",
-						LastName:    "Lastname101.1",
-						DateOfBirth: parseDate("2007-01-01"),
-						Category:    "Minime",
-						Gender:      "H",
-						Club:        "VILLENEUVE D'ASCQ TRIATHLON",
-					},
-					{
-						FirstName:   "Firstname101.2",
-						LastName:    "Lastname101.2",
-						DateOfBirth: parseDate("2007-01-02"),
-						Category:    "Minime",
-						Gender:      "H",
-						Club:        "VILLENEUVE D'ASCQ TRIATHLON",
-					},
-				},
-			},
-			cmd.Team{
-				Name:        "Team 201",
-				Gender:      "H",
-				AgeCategory: "Poussin",
-				BibNumber:   201,
-				Members: []cmd.TeamMember{
-					{
-						FirstName:   "Firstname201.1",
-						LastName:    "Lastname201.1",
-						DateOfBirth: parseDate("2014-01-01"),
-						Category:    "Poussin",
-						Gender:      "H",
-						Club:        "LILLE TRIATHLON",
-					},
-					{
-						FirstName:   "Firstname201.2",
-						LastName:    "Lastname201.2",
-						DateOfBirth: parseDate("2014-01-02"),
-						Category:    "Poussin",
-						Gender:      "H",
-						Club:        "LILLE TRIATHLON",
-					},
-				},
-			},
-		))
-	})
-})
+	// given
+	source, err := os.Open("teams.csv")
+	require.NoError(t, err)
+	outputDir, err := os.MkdirTemp(os.TempDir(), "bikerun2023-")
+	require.NoError(t, err)
+	outputFilename := filepath.Join(outputDir, "teams.yaml")
+	require.NoError(t, err)
+	logger := cmd.NewLogger(false)
 
-func parseDate(d string) cmd.ISO8601Date {
+	// when
+	err = cmd.ImportCSV(logger, source.Name(), outputFilename)
+	// then
+
+	require.NoError(t, err)
+	expected := []cmd.Team{
+		cmd.NewTeam("Team 1", "H", "Master", 1, []cmd.TeamMember{
+			cmd.NewTeamMember("Firstname1.1", "Lastname1.1", parseDate(t, "1977-01-01"), "Master", "H", ""),
+			cmd.NewTeamMember("Firstname1.2", "Lastname1.2", parseDate(t, "1977-01-02"), "Master", "H", ""),
+		}),
+		cmd.NewTeam("Team 2", "F", "Master", 2, []cmd.TeamMember{
+			cmd.NewTeamMember("Firstname2.1", "Lastname2.1", parseDate(t, "1977-01-01"), "Master", "F", "LILLE TRIATHLON"),
+			cmd.NewTeamMember("Firstname2.2", "Lastname2.2", parseDate(t, "1977-01-02"), "Master", "F", ""),
+		}),
+		cmd.NewTeam("Team 3", "M", "Master", 3, []cmd.TeamMember{
+			cmd.NewTeamMember("Firstname3.1", "Lastname3.1", parseDate(t, "1977-01-01"), "Master", "F", "VILLENEUVE D'ASCQ TRIATHLON"),
+			cmd.NewTeamMember("Firstname3.2", "Lastname3.2", parseDate(t, "1977-01-02"), "Master", "H", ""),
+		}),
+		cmd.NewTeam("Team 101", "H", "Minime", 101, []cmd.TeamMember{
+			cmd.NewTeamMember("Firstname101.1", "Lastname101.1", parseDate(t, "2007-01-01"), "Minime", "H", "VILLENEUVE D'ASCQ TRIATHLON"),
+			cmd.NewTeamMember("Firstname101.2", "Lastname101.2", parseDate(t, "2007-01-02"), "Minime", "H", "VILLENEUVE D'ASCQ TRIATHLON"),
+		}),
+		cmd.NewTeam("Team 201", "H", "Poussin", 201, []cmd.TeamMember{
+			cmd.NewTeamMember("Firstname201.1", "Lastname201.1", parseDate(t, "2014-01-01"), "Poussin", "H", "LILLE TRIATHLON"),
+			cmd.NewTeamMember("Firstname201.2", "Lastname201.2", parseDate(t, "2014-01-02"), "Poussin", "H", "LILLE TRIATHLON"),
+		}),
+	}
+
+	assert.Condition(t, containsTeams(logger, expected, outputFilename))
+}
+
+func parseDate(t *testing.T, d string) cmd.ISO8601Date {
 	r, err := time.Parse("2006-01-02", d)
-	Expect(err).NotTo(HaveOccurred())
+	require.NoError(t, err)
 	return cmd.ISO8601Date(r)
 }
 
-func HaveTeams(expected ...cmd.Team) types.GomegaMatcher {
-	return And(
-		WithTransform(func(filename string) ([]cmd.Team, error) {
-			content, err := os.ReadFile(filename)
-			if err != nil {
-				return nil, err
+func containsTeams(logger *slog.Logger, expected []cmd.Team, filename string) assert.Comparison {
+	return func() (success bool) {
+
+		content, err := os.ReadFile(filename)
+		if err != nil {
+			logger.Error("failed to read file", "filename", filename, "error", err)
+			return false
+		}
+		actual := []cmd.Team{}
+		decoder := yaml.NewDecoder(bytes.NewReader(content))
+		// decode 1 team at a time
+		for {
+			team := cmd.Team{}
+			if err := decoder.Decode(&team); errors.Is(err, io.EOF) {
+				break
+			} else if err != nil {
+				logger.Error("failed to decode YAML contents", "filename", filename, "error", err)
+				return false
 			}
-			teams := []cmd.Team{}
-			decoder := yaml.NewDecoder(bytes.NewReader(content))
-			// decode 1 team at a time
-			for {
-				team := cmd.Team{}
-				if err := decoder.Decode(&team); errors.Is(err, io.EOF) {
-					break
-				} else if err != nil {
-					return nil, err
-				}
-				teams = append(teams, team)
+			actual = append(actual, team)
+		}
+
+		if diff := cmp.Diff(expected, actual); diff != "" {
+			if logger.Enabled(context.Background(), slog.LevelDebug) {
+				log.Debugf("actual teams:\n%s", litter.Sdump(actual))
+				log.Debugf("expected teams:\n%s", litter.Sdump(expected))
 			}
-			return teams, nil
-		}, MatchTeams(expected)),
-	)
+			logger.Info("contents are not equal", "diff", diff)
+			return false
+		}
+		return true
+	}
 }

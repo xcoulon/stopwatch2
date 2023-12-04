@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/c-bata/go-prompt"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -17,15 +16,6 @@ func NewShellCmd() *cobra.Command {
 		Use:   "shell <timings.yaml>",
 		Short: "interactive shell for races",
 		Args:  cobra.ExactArgs(1),
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if debug {
-				logrus.SetLevel(logrus.DebugLevel)
-			}
-			if !force {
-				return checkOutputFile(args[0])
-			}
-			return nil
-		},
 		PostRun: func(cmd *cobra.Command, args []string) {
 			fmt.Println("bye! 👋")
 		},

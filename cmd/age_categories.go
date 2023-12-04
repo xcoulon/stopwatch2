@@ -3,8 +3,6 @@ package cmd
 import (
 	"math"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -31,7 +29,6 @@ const (
 // GetAgeCategory gets the age category associated with the given date of birth
 func GetAgeCategory(dateOfBirth time.Time) string {
 	yearOfBirth := dateOfBirth.Year()
-	logrus.WithField("year_of_birth", yearOfBirth).Debug("computing age category")
 	switch {
 	case yearOfBirth == 2015 || yearOfBirth == 2016:
 		return MiniPoussin
@@ -76,8 +73,6 @@ func GetTeamAgeCategory(ageCategory1, ageCategory2 string) string {
 		return Senior
 	}
 	teamAgeCategoryValue := math.Max(float64(cat1), float64(cat2))
-	logrus.WithField("team_age_category_value", teamAgeCategoryValue).Debugf("computing team age category...")
-	//
 
 	for k, v := range ageCategories {
 		if float64(v) == teamAgeCategoryValue {

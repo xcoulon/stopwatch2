@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -9,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log/slog"
 	"math"
 	"os"
 	"path/filepath"
@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -26,21 +25,16 @@ func NewGenerateReportCmd() *cobra.Command {
 		Use:   "generate-report <race_name> <teams.yaml> <timings.yaml> <output-dir>",
 		Short: "Generate a race report",
 		Args:  cobra.ExactArgs(4),
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if debug {
-				logrus.SetLevel(logrus.DebugLevel)
-			}
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, _, err := GenerateReport(args[0], args[1], args[2], args[3])
+			logger := NewLogger(debug)
+			_, _, err := GenerateReport(logger, args[0], args[1], args[2], args[3])
 			return err
 		},
 	}
 	return generateCmd
 }
 
-func GenerateReport(raceName, teamFilename, timingFilename, outputDir string) (string, string, error) {
+func GenerateReport(logger *slog.Logger, raceName, teamFilename, timingFilename, outputDir string) (string, string, error) {
 	results, err := NewOverallResults(teamFilename, timingFilename)
 	if err != nil {
 		return "", "", err
@@ -50,7 +44,7 @@ func GenerateReport(raceName, teamFilename, timingFilename, outputDir string) (s
 	if err := checkOutputFile(overallFilename); err != nil {
 		return "", "", err
 	}
-	if err := GenerateOverallResultsReport(raceName, results, overallFilename); err != nil {
+	if err := GenerateOverallResultsReport(logger, raceName, results, overallFilename); err != nil {
 		return "", "", err
 	}
 	perCategoryFilename := filepath.Join(outputDir, base+"-per-category.adoc")
@@ -58,7 +52,7 @@ func GenerateReport(raceName, teamFilename, timingFilename, outputDir string) (s
 		return "", "", err
 	}
 
-	if err := GenerateResultsPerCategoryReport(raceName, results, perCategoryFilename); err != nil {
+	if err := GenerateResultsPerCategoryReport(logger, raceName, results, perCategoryFilename); err != nil {
 		return "", "", err
 	}
 	return overallFilename, perCategoryFilename, nil
@@ -146,7 +140,7 @@ func getMemberClubs(members []TeamMember) string {
 	return strings.TrimSpace(fmt.Sprintf("%s %s", members[0].Club, members[1].Club))
 }
 
-func GenerateOverallResultsReport(raceName string, results []TeamResult, outputFilename string) error {
+func GenerateOverallResultsReport(logger *slog.Logger, raceName string, results []TeamResult, outputFilename string) error {
 	outputFile, err := os.Create(outputFilename)
 	if err != nil {
 		return err
@@ -157,7 +151,7 @@ func GenerateOverallResultsReport(raceName string, results []TeamResult, outputF
 		return fmt.Errorf("empty results?")
 	}
 
-	logrus.WithField("race_name", raceName).WithField("filename", outputFilename).Info("generating overall results...")
+	logger.Info("generating overall results...", "race_name", raceName, "filename", outputFilename)
 
 	adocWriter := bufio.NewWriter(outputFile)
 	adocWriter.WriteString(fmt.Sprintf("= %s - Classement Général\n\n", raceName))
@@ -209,8 +203,8 @@ func NewWinnerPerCategory(results []TeamResult) (map[string][]TeamResult, error)
 	return winners, nil
 }
 
-func GenerateResultsPerCategoryReport(raceName string, results []TeamResult, outputFilename string) error {
-	logrus.WithField("race_name", raceName).WithField("filename", outputFilename).Info("generating results per category...")
+func GenerateResultsPerCategoryReport(logger *slog.Logger, raceName string, results []TeamResult, outputFilename string) error {
+	logger.Info("generating results per category...", "race_name", raceName, "filename", outputFilename)
 	winners, err := NewWinnerPerCategory(results)
 	if err != nil {
 		return err

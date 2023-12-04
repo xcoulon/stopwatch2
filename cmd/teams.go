@@ -14,6 +14,16 @@ type Team struct {
 	Members     []TeamMember `yaml:"members"`
 }
 
+func NewTeam(name, gender, ageCategory string, bibNumber int, members []TeamMember) Team {
+	return Team{
+		Name:        name,
+		Gender:      gender,
+		AgeCategory: ageCategory,
+		BibNumber:   bibNumber,
+		Members:     members,
+	}
+}
+
 // TeamMember a member of a team
 type TeamMember struct {
 	FirstName   string      `yaml:"firstName"`
@@ -22,6 +32,17 @@ type TeamMember struct {
 	Category    string      `yaml:"category"`
 	Gender      string      `yaml:"gender"`
 	Club        string      `yaml:"club"`
+}
+
+func NewTeamMember(firstName, lastName string, dateOfBirth ISO8601Date, category, gender, club string) TeamMember {
+	return TeamMember{
+		FirstName:   firstName,
+		LastName:    lastName,
+		DateOfBirth: dateOfBirth,
+		Category:    category,
+		Gender:      gender,
+		Club:        club,
+	}
 }
 
 type ISO8601Date time.Time

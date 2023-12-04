@@ -3,13 +3,13 @@ package cmd
 import (
 	"encoding/csv"
 	"io"
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -20,23 +20,21 @@ func NewImportTeamsCmd() *cobra.Command {
 		Short: "Import Teams from a CSV file",
 		Args:  cobra.ExactArgs(2),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if debug {
-				logrus.SetLevel(logrus.DebugLevel)
-			}
 			if !force {
 				return checkOutputFile(args[1])
 			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return ImportCSV(args[0], args[1])
+			logger := NewLogger(debug)
+			return ImportCSV(logger, args[0], args[1])
 		},
 	}
 	return importCmd
 }
 
 // ImportFromFile imports the data from the given file
-func ImportCSV(sourceFilename, outputFilename string) error {
+func ImportCSV(logger *slog.Logger, sourceFilename, outputFilename string) error {
 	var headers []string
 	source, err := os.Open(sourceFilename)
 	if err != nil {
@@ -94,7 +92,7 @@ func ImportCSV(sourceFilename, outputFilename string) error {
 			if err != nil {
 				return errors.Wrapf(err, "unable to marshall team from %+v", team)
 			}
-			logrus.Debugf("%s", out)
+			logger.Debug("team", "yaml", string(out))
 			if _, err := output.WriteString("---\n" + string(out)); err != nil {
 				return errors.Wrapf(err, "unable to write team from %+v", team)
 			}

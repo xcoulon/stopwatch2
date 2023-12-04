@@ -14,18 +14,10 @@ build:
 		-o $(BIN_DIR)/stopwatch2 \
 		main.go
 
-.PHONY: install-ginkgo
-## Install development tools.
-install-ginkgo:
-	@go install -v github.com/onsi/ginkgo/v2/ginkgo
-	@ginkgo version
-
 .PHONY: test
 ## run all tests excluding fixtures and vendored packages
-test: install-ginkgo
-	@ginkgo -r --randomize-all --randomize-suites  --trace --race --compilers=0
-
-COVERPKGS := $(shell go list ./... | grep -v vendor | paste -sd "," -)
+test: 
+	@go test ./... -v --failfast
 
 .PHONY: install
 ## installs the binary executable in the $GOPATH/bin directory
