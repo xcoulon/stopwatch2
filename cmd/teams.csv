@@ -1,11 +1,11 @@
-Dossard,COMPÉTITION,Nom de l'équipe,Nom,Prénom,Date de naissance,Sexe,Club
-1,Bike & Run XS,Team 1,Lastname1.1,Firstname1.1,01/01/1977,h,
-1,Bike & Run XS,Team 1,Lastname1.2,Firstname1.2,02/01/1977,h,
-2,Bike & Run XS,Team 2,Lastname2.1,Firstname2.1,01/01/1977,f,LILLE TRIATHLON
-2,Bike & Run XS,Team 2,Lastname2.2,Firstname2.2,02/01/1977,f,
-3,Bike & Run XS,Team 3,Lastname3.1,Firstname3.1,01/01/1977,f,VILLENEUVE D'ASCQ TRIATHLON
-3,Bike & Run XS,Team 3,Lastname3.2,Firstname3.2,02/01/1977,h,
-101,Bike & Run Jeunes 12-15,Team 101,Lastname101.1,Firstname101.1,01/01/2007,h,VILLENEUVE D'ASCQ TRIATHLON
-101,Bike & Run Jeunes 12-15,Team 101,Lastname101.2,Firstname101.2,02/01/2007,h,VILLENEUVE D'ASCQ TRIATHLON
-201,Bike & Run Jeunes 6-11,Team 201,Lastname201.1,Firstname201.1,01/01/2014,h,LILLE TRIATHLON
-201,Bike & Run Jeunes 6-11,Team 201,Lastname201.2,Firstname201.2,02/01/2014,h,LILLE TRIATHLON
+Dossard,COMPÉTITION,Nom de l'équipe,Nom,Prénom,Date de naissance,Sexe,Numéro license,Club
+1,Bike & Run XS,Team 1,Lastname1.1,Firstname1.1,01/01/1977,h,,
+,Bike & Run XS,Team 1,Lastname1.2,Firstname1.2,02/01/1977,h,,
+2,Bike & Run XS,Team 2,Lastname2.1,Firstname2.1,01/01/1977,f,,LILLE TRIATHLON
+,Bike & Run XS,Team 2,Lastname2.2,Firstname2.2,02/01/1977,f,,
+3,Bike & Run XS,Team 3,Lastname3.1,Firstname3.1,01/01/1977,f,,VILLENEUVE D'ASCQ TRIATHLON
+,Bike & Run XS,Team 3,Lastname3.2,Firstname3.2,02/01/1977,h,,
+101,Bike & Run Jeunes 12-15,Team 101,Lastname101.1,Firstname101.1,01/01/2007,h,,VILLENEUVE D'ASCQ TRIATHLON
+101,Bike & Run Jeunes 12-15,Team 101,Lastname101.2,Firstname101.2,02/01/2007,h,,VILLENEUVE D'ASCQ TRIATHLON
+201,Bike & Run Jeunes 6-11,Team 201,Lastname201.1,Firstname201.1,01/01/2014,h,,LILLE TRIATHLON
+201,Bike & Run Jeunes 6-11,Team 201,Lastname201.2,Firstname201.2,02/01/2014,h,,LILLE TRIATHLON

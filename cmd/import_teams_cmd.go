@@ -47,13 +47,17 @@ func ImportCSV(logger *slog.Logger, sourceFilename, outputFilename string) error
 	}
 	defer output.Close()
 	r := csv.NewReader(source)
+	// r.Comma = ';'
 	undefinedMember := TeamMember{}
 	member1 := undefinedMember
-	member2 := undefinedMember
-
+	var bibNumber int
+	var teamName string
+	line := 0
 	for {
+		line++
+		logger.Info("reading record", "line", line)
 		record, err := r.Read()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -64,22 +68,28 @@ func ImportCSV(logger *slog.Logger, sourceFilename, outputFilename string) error
 			continue
 		}
 		if member1 == undefinedMember {
-			member1, err = newTeamMember(record)
+			member1, teamName, err = newTeamMember(record)
 			if err != nil {
 				return errors.Wrapf(err, "unable to create team member #1 from %+v", record)
 			}
+			bibNumber, err = strconv.Atoi(record[0])
+			if err != nil {
+				return errors.Wrapf(err, "unable to convert bibNumber '%s' to a number", record[1])
+			}
 		} else {
-			member2, err = newTeamMember(record)
+			// in some cases of export from .xls, only the member1 has the bibnumber
+			if len(record) < len(headers) {
+				record2 := make([]string, len(record)+1)
+				copy(record2[1:], record)
+				record = record2
+			}
+			member2, _, err := newTeamMember(record)
 			if err != nil {
 				return errors.Wrapf(err, "unable to create team member #2 from %+v", record)
 			}
 
-			bibNumber, err := strconv.Atoi(record[0])
-			if err != nil {
-				return errors.Wrapf(err, "unable to convert bibNumber '%s' to a number", record[1])
-			}
 			team := Team{
-				Name:        record[2], // team name
+				Name:        teamName, // record[2], // team name
 				AgeCategory: GetTeamAgeCategory(member1.Category, member2.Category),
 				BibNumber:   bibNumber,
 				Gender:      genderFrom(member1, member2),
@@ -98,7 +108,6 @@ func ImportCSV(logger *slog.Logger, sourceFilename, outputFilename string) error
 			}
 			// reset
 			member1 = undefinedMember
-			member2 = undefinedMember
 		}
 	}
 	return nil
@@ -111,10 +120,10 @@ func genderFrom(teamMember1, teamMember2 TeamMember) string {
 	return "M"
 }
 
-func newTeamMember(record []string) (TeamMember, error) {
+func newTeamMember(record []string) (TeamMember, string, error) {
 	dateOfBirth, err := time.Parse("02/01/2006", record[5])
 	if err != nil {
-		return TeamMember{}, errors.Wrapf(err, "unable to parse date '%s'", record[5])
+		return TeamMember{}, "", errors.Wrapf(err, "unable to parse date '%s'", record[5])
 	}
 	return TeamMember{
 		LastName:    record[3],
@@ -122,6 +131,6 @@ func newTeamMember(record []string) (TeamMember, error) {
 		DateOfBirth: ISO8601Date(dateOfBirth),
 		Gender:      strings.ToUpper(record[6]),
 		Category:    GetAgeCategory(dateOfBirth),
-		Club:        record[7],
-	}, nil
+		Club:        record[8],
+	}, record[2], nil
 }

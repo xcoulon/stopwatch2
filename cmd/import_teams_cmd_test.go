@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -37,26 +38,26 @@ func TestImportCSV(t *testing.T) {
 
 	require.NoError(t, err)
 	expected := []cmd.Team{
-		cmd.NewTeam("Team 1", "H", "Master", 1, []cmd.TeamMember{
+		cmd.NewTeam("Team 1", "H", "Master", 1,
 			cmd.NewTeamMember("Firstname1.1", "Lastname1.1", parseDate(t, "1977-01-01"), "Master", "H", ""),
 			cmd.NewTeamMember("Firstname1.2", "Lastname1.2", parseDate(t, "1977-01-02"), "Master", "H", ""),
-		}),
-		cmd.NewTeam("Team 2", "F", "Master", 2, []cmd.TeamMember{
+		),
+		cmd.NewTeam("Team 2", "F", "Master", 2,
 			cmd.NewTeamMember("Firstname2.1", "Lastname2.1", parseDate(t, "1977-01-01"), "Master", "F", "LILLE TRIATHLON"),
 			cmd.NewTeamMember("Firstname2.2", "Lastname2.2", parseDate(t, "1977-01-02"), "Master", "F", ""),
-		}),
-		cmd.NewTeam("Team 3", "M", "Master", 3, []cmd.TeamMember{
+		),
+		cmd.NewTeam("Team 3", "M", "Master", 3,
 			cmd.NewTeamMember("Firstname3.1", "Lastname3.1", parseDate(t, "1977-01-01"), "Master", "F", "VILLENEUVE D'ASCQ TRIATHLON"),
 			cmd.NewTeamMember("Firstname3.2", "Lastname3.2", parseDate(t, "1977-01-02"), "Master", "H", ""),
-		}),
-		cmd.NewTeam("Team 101", "H", "Minime", 101, []cmd.TeamMember{
+		),
+		cmd.NewTeam("Team 101", "H", "Minime", 101,
 			cmd.NewTeamMember("Firstname101.1", "Lastname101.1", parseDate(t, "2007-01-01"), "Minime", "H", "VILLENEUVE D'ASCQ TRIATHLON"),
 			cmd.NewTeamMember("Firstname101.2", "Lastname101.2", parseDate(t, "2007-01-02"), "Minime", "H", "VILLENEUVE D'ASCQ TRIATHLON"),
-		}),
-		cmd.NewTeam("Team 201", "H", "Poussin", 201, []cmd.TeamMember{
+		),
+		cmd.NewTeam("Team 201", "H", "Poussin", 201,
 			cmd.NewTeamMember("Firstname201.1", "Lastname201.1", parseDate(t, "2014-01-01"), "Poussin", "H", "LILLE TRIATHLON"),
 			cmd.NewTeamMember("Firstname201.2", "Lastname201.2", parseDate(t, "2014-01-02"), "Poussin", "H", "LILLE TRIATHLON"),
-		}),
+		),
 	}
 
 	assert.Condition(t, containsTeams(logger, expected, outputFilename))
@@ -95,6 +96,8 @@ func containsTeams(logger *slog.Logger, expected []cmd.Team, filename string) as
 				log.Debugf("actual teams:\n%s", litter.Sdump(actual))
 				log.Debugf("expected teams:\n%s", litter.Sdump(expected))
 			}
+			diff = strings.ReplaceAll(diff, "\u00a0", "")
+			diff = strings.ReplaceAll(diff, "\t", "  ")
 			logger.Info("contents are not equal", "diff", diff)
 			return false
 		}

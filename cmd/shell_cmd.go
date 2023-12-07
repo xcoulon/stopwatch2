@@ -37,14 +37,14 @@ func NewShellCmd() *cobra.Command {
 				case "stop", "quit", "exit":
 					break loop
 				case "start":
-					now := time.Now().Local().Format(TimeFormat)
+					now := time.Now().Local().Format(TimeFormat) //nolint:gosmopolitan
 					if _, err = fmt.Fprintf(output, "- %s: start\n", now); err != nil {
 						return err
 					}
 				case "":
 					continue
 				default: // teams
-					now := time.Now().Local().Format(TimeFormat)
+					now := time.Now().Local().Format(TimeFormat) //nolint:gosmopolitan
 					if _, err := strconv.Atoi(t); err != nil {
 						fmt.Fprintf(cmd.ErrOrStderr(), "'%s' is not a valid bib number\n", t)
 						continue

@@ -1,0 +1,22 @@
+version: "3"
+
+env:
+  
+tasks:
+  build:
+    cmds:
+      - rm -rf bin 2>/dev/null || true
+      - go build -o bin/stopwatch2 main.go
+
+  test:
+    cmds:
+      - go test ./... -v --failfast
+
+  install:
+    deps: [build]
+    cmds:
+      - cp bin/stopwatch2 $GOPATH/bin
+
+  lint:
+    cmds:
+      - golangci-lint run -v -c .golangci.yml ./...

@@ -14,13 +14,13 @@ type Team struct {
 	Members     []TeamMember `yaml:"members"`
 }
 
-func NewTeam(name, gender, ageCategory string, bibNumber int, members []TeamMember) Team {
+func NewTeam(name, gender, ageCategory string, bibNumber int, member1, member2 TeamMember) Team {
 	return Team{
 		Name:        name,
 		Gender:      gender,
 		AgeCategory: ageCategory,
 		BibNumber:   bibNumber,
-		Members:     members,
+		Members:     []TeamMember{member1, member2},
 	}
 }
 

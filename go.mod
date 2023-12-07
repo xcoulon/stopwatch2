@@ -7,7 +7,6 @@ require (
 	github.com/c-bata/go-prompt v0.2.6
 	github.com/charmbracelet/log v0.3.1
 	github.com/google/go-cmp v0.5.9
-	github.com/onsi/ginkgo/v2 v2.3.1
 	github.com/pkg/errors v0.9.1
 	github.com/sanity-io/litter v1.5.5
 	github.com/spf13/cobra v1.6.1
@@ -22,8 +21,6 @@ require (
 	github.com/charmbracelet/lipgloss v0.9.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
-	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
-	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
@@ -39,6 +36,4 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/tools v0.14.0 // indirect
 )
